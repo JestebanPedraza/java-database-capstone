@@ -1,0 +1,71 @@
+package com.project.back_end.models;
+
+import java.time.LocalDateTime;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+@Document(collection = "comentarios")
+public class Comment {
+
+    @Id
+    private String id;
+    @NotBlank
+    private String chat;
+    @NotBlank
+    @Size(min = 1, max = 1000)
+    private String mensaje;
+    @NotNull
+    @Valid
+    private Metadata metadata;
+
+    public static class Metadata {
+        @NotNull
+        private LocalDateTime creadoEn;
+        private LocalDateTime leidoEn;
+
+        // Getters and Setters
+        public LocalDateTime getCreadoEn() { return creadoEn; }
+        public void setCreadoEn(LocalDateTime creadoEn) { this.creadoEn = creadoEn; }
+        public LocalDateTime getLeidoEn() { return leidoEn; }
+        public void setLeidoEn(LocalDateTime leidoEn) { this.leidoEn = leidoEn; }
+    }
+
+    public Comment() {}
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getChat() {
+        return chat;
+    }
+
+    public void setChat(String chat) {
+        this.chat = chat;
+    }
+
+    public String getMensaje() {
+        return mensaje;
+    }
+
+    public void setMensaje(String mensaje) {
+        this.mensaje = mensaje;
+    }
+
+    public Metadata getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(Metadata metadata) {
+        this.metadata = metadata;
+    }
+}

@@ -1,56 +1,134 @@
 package com.project.back_end.models;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
+@Document(collection = "prescripciones")
 public class Prescription {
 
-  // @Document annotation:
-//    - Marks the class as a MongoDB document (a collection in MongoDB).
-//    - The collection name is specified as "prescriptions" to map this class to the "prescriptions" collection in MongoDB.
+    @Id
+    private String id;
+    @NotBlank
+    private String nombrePaciente;
+    @NotNull
+    private Integer cita;
+    @NotEmpty
+    @Valid
+    private List<Medication> medicamentos;
+    private List<String> etiquetas;
+    @NotNull
+    @Valid
+    private Metadata metadata;
+    @Size(min=3, max=500)
+    private String notasDoctor;
 
-// 1. 'id' field:
-//    - Type: private String
-//    - Description:
-//      - Represents the unique identifier for each prescription.
-//      - The @Id annotation marks it as the primary key in the MongoDB collection.
-//      - The id is of type String, which is commonly used for MongoDB's ObjectId as it stores IDs as strings in the database.
+    public static class Medication {
+        @NotBlank
+        @Size(max = 100)
+        private String nombre;
+        @NotBlank
+        @Size(max = 50)
+        private String dosis;
+        @NotBlank
+        @Size(max = 50)
+        private String frecuencia;
+        @NotBlank
+        @Size(max = 50)
+        private String duracion;
 
-// 2. 'patientName' field:
-//    - Type: private String
-//    - Description:
-//      - Represents the name of the patient receiving the prescription.
-//      - The @NotNull annotation ensures that the patient name is required.
-//      - The @Size(min = 3, max = 100) annotation ensures that the name length is between 3 and 100 characters, ensuring a reasonable name length.
+        // Getters and Setters
+        public String getNombre() { return nombre; }
+        public void setNombre(String nombre) { this.nombre = nombre; }
+        public String getDosis() { return dosis; }
+        public void setDosis(String dosis) { this.dosis = dosis; }
+        public String getFrecuencia() { return frecuencia; }
+        public void setFrecuencia(String frecuencia) { this.frecuencia = frecuencia; }
+        public String getDuracion() { return duracion; }
+        public void setDuracion(String duracion) { this.duracion = duracion; }
+    }
 
-// 3. 'appointmentId' field:
-//    - Type: private Long
-//    - Description:
-//      - Represents the ID of the associated appointment where the prescription was given.
-//      - The @NotNull annotation ensures that the appointment ID is required for the prescription.
+    public static class Metadata {
+        @NotNull
+        private LocalDateTime creadoEn;
+        @NotNull
+        private LocalDateTime actualizadoEn;
+        @NotBlank
+        private String estado;
 
-// 4. 'medication' field:
-//    - Type: private String
-//    - Description:
-//      - Represents the medication prescribed to the patient.
-//      - The @NotNull annotation ensures that the medication name is required.
-//      - The @Size(min = 3, max = 100) annotation ensures that the medication name is between 3 and 100 characters, which ensures meaningful medication names.
+        // Getters and Setters
+        public LocalDateTime getCreadoEn() { return creadoEn; }
+        public void setCreadoEn(LocalDateTime creadoEn) { this.creadoEn = creadoEn; }
+        public LocalDateTime getActualizadoEn() { return actualizadoEn; }
+        public void setActualizadoEn(LocalDateTime actualizadoEn) { this.actualizadoEn = actualizadoEn; }
+        public String getEstado() { return estado; }
+        public void setEstado(String estado) { this.estado = estado; }
+    }
 
-// 5. 'dosage' field:
-//    - Type: private String
-//    - Description:
-//      - Represents the dosage information for the prescribed medication.
-//      - The @NotNull annotation ensures that the dosage information is provided.
+    public Prescription() {}
 
-// 6. 'doctorNotes' field:
-//    - Type: private String
-//    - Description:
-//      - Represents any additional notes or instructions from the doctor regarding the prescription.
-//      - The @Size(max = 200) annotation ensures that the doctor's notes do not exceed 200 characters, providing a reasonable limit for additional notes.
+    public String getId() {
+        return id;
+    }
 
-// 7. Constructors:
-//    - The class includes a no-argument constructor (default constructor) and a parameterized constructor that initializes the fields: patientName, medication, dosage, doctorNotes, and appointmentId.
+    public void setId(String id) {
+        this.id = id;
+    }
 
-// 8. Getters and Setters:
-//    - Standard getter and setter methods are provided for all fields: id, patientName, medication, dosage, doctorNotes, and appointmentId.
-//    - These methods allow access and modification of the fields of the Prescription class.
+    public String getNombrePaciente() {
+        return nombrePaciente;
+    }
 
+    public void setNombrePaciente(String nombrePaciente) {
+        this.nombrePaciente = nombrePaciente;
+    }
 
+    public Integer getCita() {
+        return cita;
+    }
+
+    public void setCita(Integer cita) {
+        this.cita = cita;
+    }
+
+    public List<Medication> getMedicamentos() {
+        return medicamentos;
+    }
+
+    public void setMedicamentos(List<Medication> medicamentos) {
+        this.medicamentos = medicamentos;
+    }
+
+    public List<String> getEtiquetas() {
+        return etiquetas;
+    }
+
+    public void setEtiquetas(List<String> etiquetas) {
+        this.etiquetas = etiquetas;
+    }
+
+    public Metadata getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(Metadata metadata) {
+        this.metadata = metadata;
+    }
+
+    public String getNotasDoctor() {
+        return notasDoctor;
+    }
+
+    public void setNotasDoctor(String notasDoctor) {
+        this.notasDoctor = notasDoctor;
+    }
 }
+
