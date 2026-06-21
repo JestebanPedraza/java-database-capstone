@@ -1,0 +1,61 @@
+services:
+  db:
+    # imagen oficial
+    image: mysql:9.7
+    container_name: mysql
+    restart: always
+    
+    # --- CAPA 1: PROTECCIÓN DE PRIVILEGIOS DE LINUX ---
+    # Evita que un atacante intente escalar privilegios para controlar el servidor real
+    security_opt:
+      - no-new-privileges:true
+    # Limita los recursos para evitar ataques de Denegación de Servicio (DoS) que congelen el servidor
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 1G
+
+    # --- CAPA 2: AISLAMIENTO DE RED ---
+    ports:
+      # CRUCIAL: "127.0.0.1:" hace que MySQL SOLO escuche conexiones de la propia máquina.
+      # Queda 100% invisible para hackers escaneando puertos en internet.
+      - "3306:3306"
+
+    # --- CAPA 3: CONFIGURACIÓN SEGURA DE ARCHIVOS ---
+    environment:
+      - MYSQL_ROOT_PASSWORD=ContrasenaSuperLargaYCompleja_2026!
+      - MYSQL_DATABASE=cms
+      - MYSQL_USER=usuario_aplicacion
+      # Contraseña diferente y con menos privilegios para la aplicación
+      - MYSQL_PASSWORD=PasswordDeLaApp_9876*
+    volumes:
+      - ./bd_mysql:/var/lib/mysql
+
+
+  mongodb:
+    image: mongo:8.0
+    container_name: mongodb
+    restart: always
+
+    security_opt:
+      - no-new-privileges:true
+    # Limita los recursos para evitar ataques de Denegación de Servicio (DoS) que congelen el servidor
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 1G
+    
+    # Aislamiento de red
+    ports:
+      - "27018:27017"
+
+    # configuración segura y autenticación
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=ContrasenaSuperLargaYCompleja_2026
+      - MONGO_INITDB_DATABASE=cms_nosql
+
+    volumes:
+      - ./bd_mongodb:/data/db
