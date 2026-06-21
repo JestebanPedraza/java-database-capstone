@@ -73,7 +73,43 @@ public class Service {
 
     // 3. filterDoctor: Filtra doctores basándose en nombre, especialidad y tiempo disponible
     public Map<String, Object> filterDoctor(String name, String specialty, String time) {
-        return doctorService.filterDoctorsByNameSpecilityandTime(name, specialty, time);
+        String normalizedName = normalizeFilter(name);
+        String normalizedSpecialty = normalizeFilter(specialty);
+        String normalizedTime = normalizeFilter(time);
+
+        if (normalizedName != null && normalizedSpecialty != null && normalizedTime != null) {
+            return doctorService.filterDoctorsByNameSpecilityandTime(normalizedName, normalizedSpecialty, normalizedTime);
+        }
+        if (normalizedName != null && normalizedSpecialty != null) {
+            return doctorService.filterDoctorByNameAndSpecility(normalizedName, normalizedSpecialty);
+        }
+        if (normalizedName != null && normalizedTime != null) {
+            return doctorService.filterDoctorByNameAndTime(normalizedName, normalizedTime);
+        }
+        if (normalizedSpecialty != null && normalizedTime != null) {
+            return doctorService.filterDoctorByTimeAndSpecility(normalizedSpecialty, normalizedTime);
+        }
+        if (normalizedName != null) {
+            return doctorService.findDoctorByName(normalizedName);
+        }
+        if (normalizedSpecialty != null) {
+            return doctorService.filterDoctorBySpecility(normalizedSpecialty);
+        }
+        if (normalizedTime != null) {
+            return doctorService.filterDoctorsByTime(normalizedTime);
+        }
+        return doctorService.filterDoctorsByTime("ALL");
+    }
+
+    private String normalizeFilter(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        if (trimmed.isEmpty() || "null".equalsIgnoreCase(trimmed) || "undefined".equalsIgnoreCase(trimmed)) {
+            return null;
+        }
+        return trimmed;
     }
 
     // 4. validateAppointment: Valida si una cita está disponible según el horario del doctor

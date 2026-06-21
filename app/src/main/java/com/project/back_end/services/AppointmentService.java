@@ -1,21 +1,20 @@
 package com.project.back_end.services;
 
-import com.project.back_end.models.Appointment;
-import com.project.back_end.repo.AppointmentRepository;
-import com.project.back_end.repo.DoctorRepository;
-import com.project.back_end.repo.PatientRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.project.back_end.models.Appointment;
+import com.project.back_end.repo.AppointmentRepository;
+import com.project.back_end.repo.DoctorRepository;
 
 @Service
 public class AppointmentService {
@@ -109,10 +108,15 @@ public class AppointmentService {
             LocalDateTime startOfDay = date.atStartOfDay();
             LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
 
-            List<Appointment> appointments;
-            if (pname != null && !pname.isEmpty()) {
+                String normalizedName = pname == null ? "" : pname.trim();
+                boolean hasNameFilter = !normalizedName.isEmpty()
+                    && !"null".equalsIgnoreCase(normalizedName)
+                    && !"all".equalsIgnoreCase(normalizedName);
+
+                List<Appointment> appointments;
+                if (hasNameFilter) {
                 appointments = appointmentRepository.findByDoctorIdAndPatient_NameContainingIgnoreCaseAndAppointmentTimeBetween(
-                        doctorId, pname, startOfDay, endOfDay);
+                    doctorId, normalizedName, startOfDay, endOfDay);
             } else {
                 appointments = appointmentRepository.findByDoctorIdAndAppointmentTimeBetween(
                         doctorId, startOfDay, endOfDay);

@@ -4,14 +4,14 @@ import { createPatientRow } from './components/patientRows.js';
 const patientTableBody = document.getElementById('patientTableBody');
 let selectedDate = new Date().toISOString().split('T')[0];
 const token = localStorage.getItem('token');
-let patientName = 'null';
+let patientName = '';
 
 document.addEventListener('DOMContentLoaded', () => {
     const searchBar = document.getElementById('searchBar');
     if (searchBar) {
         searchBar.addEventListener('input', (e) => {
             const val = e.target.value.trim();
-            patientName = val === '' ? 'null' : val;
+            patientName = val;
             loadAppointments();
         });
     }

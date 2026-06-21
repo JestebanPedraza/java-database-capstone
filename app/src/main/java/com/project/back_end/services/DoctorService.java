@@ -1,16 +1,5 @@
 package com.project.back_end.services;
 
-import com.project.back_end.DTO.Login;
-import com.project.back_end.models.Appointment;
-import com.project.back_end.models.Doctor;
-import com.project.back_end.repo.AppointmentRepository;
-import com.project.back_end.repo.DoctorRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -19,6 +8,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.project.back_end.DTO.Login;
+import com.project.back_end.models.Appointment;
+import com.project.back_end.models.Doctor;
+import com.project.back_end.repo.AppointmentRepository;
+import com.project.back_end.repo.DoctorRepository;
 
 @Service
 public class DoctorService {
@@ -88,7 +88,9 @@ public class DoctorService {
     // getDoctors: Recupera una lista de todos los doctores.
     @Transactional(readOnly = true)
     public List<Doctor> getDoctors() {
-        return doctorRepository.findAll();
+        List<Doctor> doctors = doctorRepository.findAll();
+        initializeAvailableTimes(doctors);
+        return doctors;
     }
 
     // deleteDoctor: Elimina un doctor por ID.
@@ -130,6 +132,7 @@ public class DoctorService {
     public Map<String, Object> findDoctorByName(String name) {
         Map<String, Object> response = new HashMap<>();
         List<Doctor> doctors = doctorRepository.findByNameLike(name);
+        initializeAvailableTimes(doctors);
         response.put("doctors", doctors);
         return response;
     }
@@ -139,6 +142,7 @@ public class DoctorService {
     public Map<String, Object> filterDoctorsByNameSpecilityandTime(String name, String specialty, String amOrPm) {
         Map<String, Object> response = new HashMap<>();
         List<Doctor> doctors = doctorRepository.findByNameContainingIgnoreCaseAndSpecialtyIgnoreCase(name, specialty);
+        initializeAvailableTimes(doctors);
         response.put("doctors", filterDoctorByTime(doctors, amOrPm));
         return response;
     }
@@ -148,6 +152,7 @@ public class DoctorService {
     public Map<String, Object> filterDoctorByNameAndTime(String name, String amOrPm) {
         Map<String, Object> response = new HashMap<>();
         List<Doctor> doctors = doctorRepository.findByNameLike(name);
+        initializeAvailableTimes(doctors);
         response.put("doctors", filterDoctorByTime(doctors, amOrPm));
         return response;
     }
@@ -157,6 +162,7 @@ public class DoctorService {
     public Map<String, Object> filterDoctorByNameAndSpecility(String name, String specilty) {
         Map<String, Object> response = new HashMap<>();
         List<Doctor> doctors = doctorRepository.findByNameContainingIgnoreCaseAndSpecialtyIgnoreCase(name, specilty);
+        initializeAvailableTimes(doctors);
         response.put("doctors", doctors);
         return response;
     }
@@ -166,6 +172,7 @@ public class DoctorService {
     public Map<String, Object> filterDoctorByTimeAndSpecility(String specilty, String amOrPm) {
         Map<String, Object> response = new HashMap<>();
         List<Doctor> doctors = doctorRepository.findBySpecialtyIgnoreCase(specilty);
+        initializeAvailableTimes(doctors);
         response.put("doctors", filterDoctorByTime(doctors, amOrPm));
         return response;
     }
@@ -175,6 +182,7 @@ public class DoctorService {
     public Map<String, Object> filterDoctorBySpecility(String specilty) {
         Map<String, Object> response = new HashMap<>();
         List<Doctor> doctors = doctorRepository.findBySpecialtyIgnoreCase(specilty);
+        initializeAvailableTimes(doctors);
         response.put("doctors", doctors);
         return response;
     }
@@ -184,8 +192,17 @@ public class DoctorService {
     public Map<String, Object> filterDoctorsByTime(String amOrPm) {
         Map<String, Object> response = new HashMap<>();
         List<Doctor> doctors = doctorRepository.findAll();
+        initializeAvailableTimes(doctors);
         response.put("doctors", filterDoctorByTime(doctors, amOrPm));
         return response;
+    }
+
+    private void initializeAvailableTimes(List<Doctor> doctors) {
+        for (Doctor doctor : doctors) {
+            if (doctor.getAvailableTimes() != null) {
+                doctor.getAvailableTimes().size();
+            }
+        }
     }
 
     // filterDoctorByTime: Filtra una lista de doctores por sus horarios disponibles (AM/PM).

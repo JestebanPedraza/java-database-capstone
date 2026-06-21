@@ -91,7 +91,7 @@ window.loginPatient = async function () {
         const email = document.getElementById("email").value;
         const password = document.getElementById("password").value;
 
-        const data = { email, password };
+        const data = { identifier: email, password };
         const response = await patientLogin(data);
         
         if (response.ok) {

@@ -1,9 +1,9 @@
 // loggedPatient.js 
 import { getDoctors } from './services/doctorServices.js';
 import { createDoctorCard } from './components/doctorCard.js';
-import { filterDoctors } from './services/doctorServices.js';
 import { bookAppointment } from './services/appointmentRecordService.js';
 
+let cachedDoctors = [];
 
 document.addEventListener("DOMContentLoaded", () => {
   loadDoctorCards();
@@ -12,13 +12,8 @@ document.addEventListener("DOMContentLoaded", () => {
 function loadDoctorCards() {
   getDoctors()
     .then(doctors => {
-      const contentDiv = document.getElementById("content");
-      contentDiv.innerHTML = "";
-
-      doctors.forEach(doctor => {
-        const card = createDoctorCard(doctor);
-        contentDiv.appendChild(card);
-      });
+      cachedDoctors = doctors;
+      renderDoctorCards(doctors);
     })
     .catch(error => {
       console.error("Failed to load doctors:", error);
@@ -94,36 +89,81 @@ document.getElementById("filterSpecialty").addEventListener("change", filterDoct
 
 
 function filterDoctorsOnChange() {
-  const searchBar = document.getElementById("searchBar").value.trim();
+  const searchBar = normalizeText(document.getElementById("searchBar").value.trim());
   const filterTime = document.getElementById("filterTime").value;
-  const filterSpecialty = document.getElementById("filterSpecialty").value;
+  const filterSpecialty = normalizeText(document.getElementById("filterSpecialty").value.trim());
 
+  const doctors = cachedDoctors.filter(doctor => {
+    const doctorName = normalizeText(doctor.name || "");
+    const doctorSpecialty = normalizeText(doctor.specialty || "");
+    const availableTimes = getDoctorAvailableTimes(doctor);
 
-  const name = searchBar.length > 0 ? searchBar : null;
-  const time = filterTime.length > 0 ? filterTime : null;
-  const specialty = filterSpecialty.length > 0 ? filterSpecialty : null;
+    const matchesName = !searchBar || doctorName.includes(searchBar);
+    const matchesSpecialty = !filterSpecialty
+      || doctorSpecialty.includes(filterSpecialty)
+      || filterSpecialty.includes(doctorSpecialty);
+    const matchesTime = !filterTime
+      || availableTimes.length === 0
+      || availableTimes.some(time => isTimeInPeriod(time, filterTime));
 
-  filterDoctors(name, time, specialty)
-    .then(response => {
-      const doctors = response.doctors;
-      const contentDiv = document.getElementById("content");
-      contentDiv.innerHTML = "";
+    return matchesName && matchesSpecialty && matchesTime;
+  });
 
-      if (doctors.length > 0) {
-        console.log(doctors);
-        doctors.forEach(doctor => {
-          const card = createDoctorCard(doctor);
-          contentDiv.appendChild(card);
-        });
-      } else {
-        contentDiv.innerHTML = "<p>No doctors found with the given filters.</p>";
-        console.log("Nothing");
-      }
-    })
-    .catch(error => {
-      console.error("Failed to filter doctors:", error);
-      alert("❌ An error occurred while filtering doctors.");
-    });
+  const contentDiv = document.getElementById("content");
+  contentDiv.innerHTML = "";
+
+  if (doctors.length > 0) {
+    renderDoctorCards(doctors);
+  } else {
+    contentDiv.innerHTML = "<p>No se encontraron médicos con los filtros seleccionados.</p>";
+    console.log("Nothing");
+  }
+}
+
+function normalizeText(value) {
+  return String(value)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+function getDoctorAvailableTimes(doctor) {
+  if (Array.isArray(doctor.availableTimes)) {
+    return doctor.availableTimes;
+  }
+  if (Array.isArray(doctor.availability)) {
+    return doctor.availability;
+  }
+  if (typeof doctor.availability === "string") {
+    return doctor.availability.split(",").map(t => t.trim()).filter(Boolean);
+  }
+  return [];
+}
+
+function isTimeInPeriod(timeValue, period) {
+  if (!timeValue || !period) return false;
+
+  const normalized = String(timeValue).toLowerCase();
+  const firstSlot = normalized.split('-')[0].trim();
+
+  const hourMatch = firstSlot.match(/\d{1,2}/);
+  if (!hourMatch) return true;
+
+  let hour = parseInt(hourMatch[0], 10);
+  if (Number.isNaN(hour)) return true;
+
+  const hasAm = firstSlot.includes("am");
+  const hasPm = firstSlot.includes("pm");
+
+  if (hasPm && hour < 12) {
+    hour += 12;
+  } else if (hasAm && hour === 12) {
+    hour = 0;
+  }
+
+  if (period === "AM") return hour < 12;
+  if (period === "PM") return hour >= 12;
+  return true;
 }
 
 export function renderDoctorCards(doctors) {
