@@ -4,11 +4,11 @@
 
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" type="image/svg+xml" href="../assets/images/logo/logo.png" />
+    <link rel="icon" type="image/png" href="../assets/images/logo/Logo.png" />
     <title>PatientDashboard</title>
-    <link rel="stylesheet" href="../assets/css/adminDashboard.css">
-    <link rel="stylesheet" href="../assets/css/style.css">
-    <link rel="stylesheet" href="../assets/css/patientDashboard.css">
+    <link rel="stylesheet" href="../assets/css/adminDashboard.css" />
+    <link rel="stylesheet" href="../assets/css/style.css" />
+    <link rel="stylesheet" href="../assets/css/patientDashboard.css" />
     <script src="../js/render.js" defer></script>
     <script src="../js/util.js" defer></script>
     <script src="../js/components/header.js" defer></script>
@@ -21,29 +21,19 @@
         <div class="wrapper">
             <div id="header"></div>
             <main class="main-content">
-                <input type="text" id="searchBar" class="searchBar" placeholder="Search Bar for custom output" />
+                <input type="text" id="searchBar" class="searchBar" placeholder="Barra de búsqueda para salida personalizada" />
                 <div class="filter-wrapper">
                     <select class="filter-select" id="filterTime">
-                        <option value="">Sort by Time</option>
+                        <option value="">Sort by Time (Todos)</option>
                         <option value="AM">AM</option>
                         <option value="PM">PM</option>
                     </select>
                     <select class="filter-select" id="filterSpecialty">
-                        <option value="">Filter by Specialty</option>
-                        <option value="Cardiologist">Cardiologist</option>
-                        <option value="Dermatologist">Dermatologist</option>
-                        <option value="Neurologist">Neurologist</option>
-                        <option value="Pediatrician">Pediatrician</option>
-                        <option value="Orthopedic">Orthopedic</option>
-                        <option value="Gynecologist">Gynecologist</option>
-                        <option value="Psychiatrist">Psychiatrist</option>
-                        <option value="Dentist">Dentist</option>
-                        <option value="Ophthalmologist">Ophthalmologist</option>
-                        <option value="Ent">ENT Specialist</option>
-                        <option value="Urologist">Urologist</option>
-                        <option value="Oncologist">Oncologist</option>
-                        <option value="Gastroenterologist">Gastroenterologist</option>
-                        <option value="General">General Physician</option>
+                        <option value="">Filter by Specialty (Todas)</option>
+                        <option value="Cardiology">Cardiologist (Cardiología)</option>
+                        <option value="Dentistry">Dentist (Odontología)</option>
+                        <option value="Pediatrics">Pedodontist (Pediatría)</option>
+                        <option value="General">General Physician (Medicina General)</option>
                     </select>
                 </div>
                 <div id="content"></div>
@@ -51,7 +41,7 @@
             <div id="footer"></div>
         </div>
     </div>
-    <div id="modal" class="modal">
+    <div id="modal" class="modal" style="display: none;">
         <div class="modal-content">
             <span class="close" id="closeModal">&times;</span>
             <div id="modal-body"></div>
