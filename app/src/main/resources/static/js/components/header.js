@@ -17,7 +17,7 @@ function renderHeader() {
   let headerContent = `
     <header class="header">
       <div class="logo-section" onclick="window.location.href='/'" style="cursor:pointer">
-        <img src="/assets/images/logo/Logo.png" alt="Hospital CRM Logo" class="logo-img">
+        <img src="/assets/images/logo/logo.png" alt="Hospital CRM Logo" class="logo-img">
         <span class="logo-title">Hospital CMS</span>
       </div>
       <nav class="nav-links">`;

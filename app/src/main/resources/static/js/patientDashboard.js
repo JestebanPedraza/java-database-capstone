@@ -1,8 +1,10 @@
 // patientDashboard.js
-import { getDoctors, filterDoctors } from './services/doctorServices.js';
+import { getDoctors } from './services/doctorServices.js';
 import { openModal } from './components/modals.js';
 import { createDoctorCard } from './components/doctorCard.js';
 import { patientSignup, patientLogin } from './services/patientServices.js';
+
+let cachedDoctors = [];
 
 document.addEventListener("DOMContentLoaded", () => {
     loadDoctorCards();
@@ -25,28 +27,35 @@ document.addEventListener("DOMContentLoaded", () => {
 async function loadDoctorCards() {
     try {
         const doctors = await getDoctors();
+        cachedDoctors = doctors;
         renderDoctorCards(doctors);
     } catch (error) {
         console.error("Failed to load doctors:", error);
     }
 }
 
-async function filterDoctorsOnChange() {
-    const searchBarVal = document.getElementById("searchBar").value.trim();
+function filterDoctorsOnChange() {
+    const searchBarVal = normalizeText(document.getElementById("searchBar").value.trim());
     const filterTimeVal = document.getElementById("filterTime").value;
-    const filterSpecialtyVal = document.getElementById("filterSpecialty").value;
+    const filterSpecialtyVal = normalizeSpecialty(document.getElementById("filterSpecialty").value);
 
-    const name = searchBarVal || 'null';
-    const time = filterTimeVal || 'null';
-    const specialty = filterSpecialtyVal || 'null';
+    const doctors = cachedDoctors.filter(doctor => {
+        const doctorName = normalizeText(doctor.name || "");
+        const doctorSpecialty = normalizeSpecialty(doctor.specialty || "");
+        const availableTimes = getDoctorAvailableTimes(doctor);
 
-    try {
-        const doctors = await filterDoctors(name, time, specialty);
-        renderDoctorCards(doctors);
-    } catch (error) {
-        console.error("Failed to filter doctors:", error);
-        alert("❌ Ocurrió un error al filtrar los médicos.");
-    }
+        const matchesName = !searchBarVal || doctorName.includes(searchBarVal);
+        const matchesSpecialty = !filterSpecialtyVal
+            || doctorSpecialty.includes(filterSpecialtyVal)
+            || filterSpecialtyVal.includes(doctorSpecialty);
+        const matchesTime = !filterTimeVal
+            || availableTimes.length === 0
+            || availableTimes.some(time => isTimeInPeriod(time, filterTimeVal));
+
+        return matchesName && matchesSpecialty && matchesTime;
+    });
+
+    renderDoctorCards(doctors);
 }
 
 function renderDoctorCards(doctors) {
@@ -59,8 +68,68 @@ function renderDoctorCards(doctors) {
             contentDiv.appendChild(card);
         });
     } else {
-        contentDiv.innerHTML = "<p>No se encontraron médicos con los filtros seleccionados.</p>";
+        contentDiv.innerHTML = "<p>No se encontraron medicos con los filtros seleccionados.</p>";
     }
+}
+
+function normalizeText(value) {
+    return String(value)
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim();
+}
+
+function normalizeSpecialty(value) {
+    const normalized = normalizeText(value);
+    const aliases = {
+        cardiology: "cardiologist",
+        dentistry: "dentist",
+        pediatrics: "pediatrician",
+        pedodontist: "pediatrician",
+        "general physician": "general",
+        "medicina general": "general"
+    };
+
+    return aliases[normalized] || normalized;
+}
+
+function getDoctorAvailableTimes(doctor) {
+    if (Array.isArray(doctor.availableTimes)) {
+        return doctor.availableTimes;
+    }
+    if (Array.isArray(doctor.availability)) {
+        return doctor.availability;
+    }
+    if (typeof doctor.availability === "string") {
+        return doctor.availability.split(",").map(time => time.trim()).filter(Boolean);
+    }
+    return [];
+}
+
+function isTimeInPeriod(timeValue, period) {
+    if (!timeValue || !period) return false;
+
+    const firstSlot = String(timeValue).toLowerCase().split("-")[0].trim();
+    const hourMatch = firstSlot.match(/\d{1,2}/);
+
+    if (!hourMatch) return true;
+
+    let hour = parseInt(hourMatch[0], 10);
+    if (Number.isNaN(hour)) return true;
+
+    const hasAm = firstSlot.includes("am");
+    const hasPm = firstSlot.includes("pm");
+
+    if (hasPm && hour < 12) {
+        hour += 12;
+    } else if (hasAm && hour === 12) {
+        hour = 0;
+    }
+
+    if (period === "AM") return hour < 12;
+    if (period === "PM") return hour >= 12;
+    return true;
 }
 
 window.signupPatient = async function () {
@@ -82,7 +151,7 @@ window.signupPatient = async function () {
         }
     } catch (error) {
         console.error("Signup failed:", error);
-        alert("❌ Ocurrió un error al registrarse.");
+        alert("Ocurrio un error al registrarse.");
     }
 };
 
@@ -93,18 +162,16 @@ window.loginPatient = async function () {
 
         const data = { identifier: email, password };
         const response = await patientLogin(data);
-        
+
         if (response.ok) {
             const result = await response.json();
             localStorage.setItem('token', result.token);
-            // Redirigir al dashboard de paciente logueado
             window.location.href = "/pages/loggedPatientDashboard.html";
         } else {
-            alert('❌ ¡Credenciales inválidas!');
+            alert("Credenciales invalidas.");
         }
     } catch (error) {
         console.error("Login failed:", error);
-        alert("❌ Error al iniciar sesión.");
+        alert("Error al iniciar sesion.");
     }
 };
-

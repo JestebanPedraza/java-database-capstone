@@ -1,61 +1,62 @@
+version: '3.8'
+
 services:
+  # --- COMPONENTE 1: APLICACIÓN JAVA TRANSACCIONAL ---
+  app:
+    image: jestebanpedraza/smart-clinic-backend:latest
+    build: . # Busca el Dockerfile en el mismo directorio
+    container_name: smart-clinic-backend
+    restart: always
+    ports:
+      - "8080:8080" # Expone la app al exterior
+    environment:
+      - DB_HOST=db       # Nombre del servicio MySQL
+      - DB_PORT=3306     # Puerto interno de MySQL
+      - MONGO_HOST=mongodb # Nombre del servicio MongoDB
+      - MONGO_PORT=27017   # Puerto interno nativo de MongoDB
+      - MONGO_USER=admin
+      - MONGO_PASSWORD=ContrasenaSuperLargaYCompleja_2026
+    depends_on:
+      - db
+      - mongodb
+
+  # --- COMPONENTE 2: BASE DE DATOS MYSQL ---
   db:
-    # imagen oficial
     image: mysql:9.7
     container_name: mysql
     restart: always
-    
-    # --- CAPA 1: PROTECCIÓN DE PRIVILEGIOS DE LINUX ---
-    # Evita que un atacante intente escalar privilegios para controlar el servidor real
     security_opt:
       - no-new-privileges:true
-    # Limita los recursos para evitar ataques de Denegación de Servicio (DoS) que congelen el servidor
     deploy:
       resources:
         limits:
           cpus: '1.5'
           memory: 1G
-
-    # --- CAPA 2: AISLAMIENTO DE RED ---
     ports:
-      # CRUCIAL: "127.0.0.1:" hace que MySQL SOLO escuche conexiones de la propia máquina.
-      # Queda 100% invisible para hackers escaneando puertos en internet.
-      - "3306:3306"
-
-    # --- CAPA 3: CONFIGURACIÓN SEGURA DE ARCHIVOS ---
+      - "127.0.0.1:3306:3306" # Mapeo seguro para desarrollo local exterior
     environment:
       - MYSQL_ROOT_PASSWORD=ContrasenaSuperLargaYCompleja_2026!
       - MYSQL_DATABASE=cms
-      - MYSQL_USER=usuario_aplicacion
-      # Contraseña diferente y con menos privilegios para la aplicación
-      - MYSQL_PASSWORD=PasswordDeLaApp_9876*
     volumes:
       - ./bd_mysql:/var/lib/mysql
 
-
+  # --- COMPONENTE 3: BASE DE DATOS NOSQL MONGODB ---
   mongodb:
     image: mongo:8.0
     container_name: mongodb
     restart: always
-
     security_opt:
       - no-new-privileges:true
-    # Limita los recursos para evitar ataques de Denegación de Servicio (DoS) que congelen el servidor
     deploy:
       resources:
         limits:
           cpus: '1.5'
           memory: 1G
-    
-    # Aislamiento de red
     ports:
-      - "27018:27017"
-
-    # configuración segura y autenticación
+      - "127.0.0.1:27018:27017" # Mapeo seguro para desarrollo local exterior
     environment:
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=ContrasenaSuperLargaYCompleja_2026
       - MONGO_INITDB_DATABASE=cms_nosql
-
     volumes:
       - ./bd_mongodb:/data/db
